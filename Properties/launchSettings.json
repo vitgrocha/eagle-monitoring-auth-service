@@ -1,0 +1,28 @@
+﻿{
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5259",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Authentication__Enabled": "true",
+        "Authentication__Scheme": "Bearer",  
+        "Authentication__Description": "JWT Bearer Authentication"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:7045;http://localhost:5259",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Authentication__Enabled": "true",
+        "Authentication__Scheme": "Bearer",
+        "Authentication__Description": "JWT Bearer Authentication"
+      }
+    }
+  }
+}
