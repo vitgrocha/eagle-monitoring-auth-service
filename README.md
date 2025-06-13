@@ -1,14 +1,15 @@
-# MsAuthentication
-
 # 🔐 MSAuthentication - Microserviço de Autenticação
 
-Microserviço responsável pela autenticação e gerenciamento de acesso de usuários. Utiliza ASP.NET Core, JWT, BCrypt e segue o padrão RESTful. Desenvolvido para integração com ambientes baseados em microsserviços.
+Microserviço responsável pela autenticação e gerenciamento de acesso de usuários.  
+Utiliza **ASP.NET Core**, **JWT**, **BCrypt** e segue o padrão **RESTful**.  
+Desenvolvido para integração com ambientes baseados em **microsserviços**.
 
 ---
 
 ## 📌 Visão Geral
 
-O **MSAuthentication** é responsável pelo processo de login, registro, alteração de senha, recuperação de conta e geração de tokens JWT com controle de perfis (roles). Ele atua como ponto central de autenticação no sistema distribuído, desacoplado dos demais serviços.
+O `MSAuthentication` é responsável pelo processo de login, registro, alteração de senha, recuperação de conta e geração de tokens JWT com controle de perfis (roles).  
+Atua como ponto central de autenticação em um sistema distribuído, desacoplado dos demais serviços.
 
 ---
 
@@ -23,9 +24,12 @@ O **MSAuthentication** é responsável pelo processo de login, registro, altera�
 - ✅ **MySQL / SQL Server**
 - ✅ **CORS Configurado**
 - ✅ **Arquitetura RESTful**
----
-## 📂 Estrutura do Projeto
 
+---
+
+## 📁 Estrutura do Projeto
+
+```
 MSAuthentication/
 ├── Controllers/
 │   └── AuthController.cs
@@ -50,9 +54,15 @@ MSAuthentication/
 ├── Program.cs
 ├── appsettings.json
 └── MSAuthentication.csproj
-🔑 Perfis de Acesso
-A autenticação é baseada em perfis (roles) definidos no enum UserRole.cs:
+```
 
+---
+
+## 🔑 Perfis de Acesso (Roles)
+
+Perfis de acesso definidos no enum `UserRole.cs`:
+
+```csharp
 public enum UserRole
 {
     Admin = 0,
@@ -61,52 +71,72 @@ public enum UserRole
     Morador = 3,
     Visitante = 4
 }
+```
+
 Esses perfis podem ser utilizados para controle de acesso via middleware ou policies.
 
-📮 Endpoints da API
-Método	Rota	Descrição
-POST	/api/auth/register	Registro de um novo usuário
-POST	/api/auth/login	Login e geração de token JWT
-POST	/api/auth/logout	Logout (revogação via cache)
-POST	/api/auth/change-password	Alteração de senha
-POST	/api/auth/forgot-password	Envio de token de recuperação
-POST	/api/auth/validate-token	Validação do token de recuperação
-PUT	/api/auth/update-user	Atualização dos dados do usuário
+---
 
-📚 Documentação Swagger disponível em:
-http://localhost:{5259}/swagger
+## 📮 Endpoints da API
 
-🛠️ Como Executar Localmente
-Clone o repositório:
+| Método | Rota                          | Descrição                           |
+|--------|-------------------------------|--------------------------------------|
+| POST   | `/api/auth/register`          | Registro de novo usuário             |
+| POST   | `/api/auth/login`             | Login e geração do token JWT         |
+| POST   | `/api/auth/logout`            | Logout (revogação do token)          |
+| POST   | `/api/auth/change-password`   | Alteração de senha                   |
+| POST   | `/api/auth/forgot-password`   | Envio de token para recuperação      |
+| POST   | `/api/auth/validate-token`    | Validação do token de recuperação    |
+| PUT    | `/api/auth/update-user`       | Atualização de dados do usuário      |
 
+> 📚 **Swagger disponível em:**  
+> [`http://localhost:{porta}/swagger`](http://localhost:5259/swagger)
+
+---
+
+## 🛠️ Como Executar Localmente
+
+1. Clone o repositório:
+
+```bash
 git clone https://github.com/seu-usuario/MSAuthentication.git
 cd MSAuthentication
-Configure o appsettings.json:
+```
 
-Connection string para seu banco (MySQL ou SQL Server)
+2. Configure o arquivo `appsettings.json` com:
+   - Connection string (MySQL ou SQL Server)
+   - JWT config (chave secreta, tempo de expiração)
 
-JWT: chave secreta, tempo de expiração, etc.
+3. (Opcional) Execute as migrações:
 
-(Opcional) Execute as migrações:
-
+```bash
 dotnet ef database update
-Execute o projeto:
+```
+
+4. Rode o projeto:
+
+```bash
 dotnet run
+```
+
 ---
-⚠️ Observações
-Esse serviço não é responsável por autorização (roles são incluídas no JWT, mas a lógica de permissões deve ser aplicada por outro serviço ou gateway).
 
-Compatível com Redis para controle de tokens revogados.
+## ⚠️ Observações
 
-Arquitetado para funcionar de forma independente ou integrado a uma arquitetura maior com API Gateway.
+- Este serviço **não implementa autorização diretamente** — ele apenas inclui o `role` no JWT. A validação de permissões deve ser feita por outro serviço ou gateway.
+- Compatível com **Redis** para controle de tokens revogados.
+- Arquitetado para funcionar de forma **independente ou integrado via API Gateway**.
+
 ---
-🤝 Contribuições
-Contribuições são bem-vindas!
-Sinta-se livre para abrir issues ou enviar pull requests. 😄
 
-📄 Licença
-Este projeto está licenciado sob a MIT License.
-Consulte o arquivo LICENSE para mais detalhes.
+## 🤝 Contribuições
 
+Contribuições são bem-vindas!  
+Sinta-se à vontade para abrir issues ou enviar pull requests. 😄
 
+---
 
+## 📄 Licença
+
+Este projeto está licenciado sob a **MIT License**.  
+Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
