@@ -23,9 +23,7 @@ O **MSAuthentication** é responsável pelo processo de login, registro, altera�
 - ✅ **MySQL / SQL Server**
 - ✅ **CORS Configurado**
 - ✅ **Arquitetura RESTful**
-
 ---
-
 ## 📂 Estrutura do Projeto
 
 MSAuthentication/
@@ -93,15 +91,15 @@ JWT: chave secreta, tempo de expiração, etc.
 
 dotnet ef database update
 Execute o projeto:
-
 dotnet run
+---
 ⚠️ Observações
 Esse serviço não é responsável por autorização (roles são incluídas no JWT, mas a lógica de permissões deve ser aplicada por outro serviço ou gateway).
 
 Compatível com Redis para controle de tokens revogados.
 
 Arquitetado para funcionar de forma independente ou integrado a uma arquitetura maior com API Gateway.
-
+---
 🤝 Contribuições
 Contribuições são bem-vindas!
 Sinta-se livre para abrir issues ou enviar pull requests. 😄
