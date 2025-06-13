@@ -90,7 +90,7 @@ Esses perfis podem ser utilizados para controle de acesso via middleware ou poli
 | PUT    | `/api/auth/update-user`       | Atualização de dados do usuário      |
 
 > 📚 **Swagger disponível em:**  
-> [`http://localhost:{porta}/swagger`](http://localhost:5259/swagger)
+> [`http://localhost:{5259}/swagger`](http://localhost:5259/swagger)
 
 ---
 
