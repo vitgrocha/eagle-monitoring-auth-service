@@ -47,8 +47,6 @@ MSAuthentication/
 ├── Services/
 │   ├── AuthService.cs
 │   └── JwtTokenService.cs
-├── Helpers/
-│   └── PasswordHasher.cs
 ├── Data/
 │   └── AuthDbContext.cs
 ├── Program.cs
