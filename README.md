@@ -81,9 +81,6 @@ http://localhost:{5259}/swagger
 🛠️ Como Executar Localmente
 Clone o repositório:
 
-bash
-Copiar
-Editar
 git clone https://github.com/seu-usuario/MSAuthentication.git
 cd MSAuthentication
 Configure o appsettings.json:
@@ -94,15 +91,9 @@ JWT: chave secreta, tempo de expiração, etc.
 
 (Opcional) Execute as migrações:
 
-bash
-Copiar
-Editar
 dotnet ef database update
 Execute o projeto:
 
-bash
-Copiar
-Editar
 dotnet run
 ⚠️ Observações
 Esse serviço não é responsável por autorização (roles são incluídas no JWT, mas a lógica de permissões deve ser aplicada por outro serviço ou gateway).
