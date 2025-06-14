@@ -8,7 +8,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace MsAuthentication.Controllers
 {
     [Authorize]
@@ -19,12 +18,14 @@ namespace MsAuthentication.Controllers
         private readonly AuthDbContext _context;
         private readonly AuthService _authService;
         private readonly IMemoryCache _cache;
+        private readonly TwoFactorService _twoFactorService;
 
-        public AuthController(AuthDbContext context, AuthService authService, IMemoryCache cache)
+        public AuthController(AuthDbContext context, AuthService authService, IMemoryCache cache, TwoFactorService twoFactorService)
         {
             _context = context;
             _authService = authService;
             _cache = cache;
+            _twoFactorService = twoFactorService;
         }
 
         [AllowAnonymous]
@@ -57,21 +58,40 @@ namespace MsAuthentication.Controllers
             });
         }
 
+        // LOGIN - primeira etapa: valida email/senha e gera código 2FA
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-            {
                 return BadRequest("Email e senha são obrigatórios.");
-            }
 
-            // Buscar usuário por email (ajustei para buscar por Email, como no seu exemplo)
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-            {
                 return Unauthorized("Credenciais inválidas!");
-            }
+
+            // Gera o código 2FA e envia (aqui mock via console)
+            var code = await _twoFactorService.GenerateCodeAsync(user.Email);
+
+            // Retorna mensagem para o cliente pedir o código 2FA
+            return Ok(new { message = "Código 2FA enviado para seu e-mail." });
+        }
+
+        // VERIFICAÇÃO DO CÓDIGO 2FA e geração do JWT
+        [AllowAnonymous]
+        [HttpPost("verify-code")]
+        public async Task<IActionResult> VerifyCode([FromBody] TwoFactorCodeRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Code))
+                return BadRequest("Email e código 2FA são obrigatórios.");
+
+            var valid = await _twoFactorService.ValidateCodeAsync(request.Email, request.Code);
+            if (!valid)
+                return Unauthorized("Código inválido ou expirado.");
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (user == null)
+                return NotFound("Usuário não encontrado.");
 
             var token = _authService.GenerateToken(user);
             var refreshToken = _authService.GenerateRefreshToken(user.Email);
@@ -82,7 +102,6 @@ namespace MsAuthentication.Controllers
                 RefreshToken = refreshToken
             });
         }
-
 
         [HttpPut("users/{email}/password")]
         public IActionResult ChangePassword(string email, [FromBody] ChangePasswordDto changePasswordDto)
@@ -116,7 +135,6 @@ namespace MsAuthentication.Controllers
             if (string.IsNullOrEmpty(tokenId))
                 return BadRequest("Token inválido!");
 
-            // Chama o método do serviço para invalidar o token pelo tokenId (jti)
             _authService.InvalidateToken(tokenId);
 
             return Ok("Logout bem-sucedido!");
@@ -196,5 +214,12 @@ namespace MsAuthentication.Controllers
                 RefreshToken = newRefreshToken
             });
         }
+    }
+
+    // DTO para verificação do código 2FA
+    public class TwoFactorCodeRequest
+    {
+        public  required  string Email { get; set; }
+        public  required string Code { get; set; }
     }
 }

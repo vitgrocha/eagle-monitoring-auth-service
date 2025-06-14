@@ -46,6 +46,7 @@ builder.Services.AddCors(options =>
 
 // Serviços
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddSingleton<TwoFactorService>();
 
 // Configuração da autenticação JWT
 builder.Services.AddAuthentication("Bearer")
