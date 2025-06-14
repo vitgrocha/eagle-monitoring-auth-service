@@ -157,3 +157,4 @@ D:\Git\portaria-controle\MsAuthentication\obj\Debug\net9.0\refint\MSAuthenticati
 D:\Git\portaria-controle\MsAuthentication\obj\Debug\net9.0\MSAuthentication.pdb
 D:\Git\portaria-controle\MsAuthentication\obj\Debug\net9.0\MSAuthentication.genruntimeconfig.cache
 D:\Git\portaria-controle\MsAuthentication\obj\Debug\net9.0\ref\MSAuthentication.dll
+D:\Git\portaria-controle\MsAuthentication\obj\Debug\net9.0\MSAuthentication.sourcelink.json
