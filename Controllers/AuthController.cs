@@ -19,13 +19,20 @@ namespace MsAuthentication.Controllers
         private readonly AuthService _authService;
         private readonly IMemoryCache _cache;
         private readonly TwoFactorService _twoFactorService;
+        private readonly EmailService _emailService;
 
-        public AuthController(AuthDbContext context, AuthService authService, IMemoryCache cache, TwoFactorService twoFactorService)
+        public AuthController(
+            AuthDbContext context,
+            AuthService authService,
+            IMemoryCache cache,
+            TwoFactorService twoFactorService,
+            EmailService emailService)
         {
             _context = context;
             _authService = authService;
             _cache = cache;
             _twoFactorService = twoFactorService;
+            _emailService = emailService;
         }
 
         [AllowAnonymous]
@@ -58,7 +65,6 @@ namespace MsAuthentication.Controllers
             });
         }
 
-        // LOGIN - primeira etapa: valida email/senha e gera código 2FA
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
@@ -70,14 +76,11 @@ namespace MsAuthentication.Controllers
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return Unauthorized("Credenciais inválidas!");
 
-            // Gera o código 2FA e envia (aqui mock via console)
             var code = await _twoFactorService.GenerateCodeAsync(user.Email);
 
-            // Retorna mensagem para o cliente pedir o código 2FA
             return Ok(new { message = "Código 2FA enviado para seu e-mail." });
         }
 
-        // VERIFICAÇÃO DO CÓDIGO 2FA e geração do JWT
         [AllowAnonymous]
         [HttpPost("verify-code")]
         public async Task<IActionResult> VerifyCode([FromBody] TwoFactorCodeRequest request)
@@ -148,8 +151,18 @@ namespace MsAuthentication.Controllers
             if (user == null)
                 return NotFound("Usuário não encontrado!");
 
-            // TODO: implementar envio de e-mail para recuperação de senha
-            return Ok("Instruções para recuperação de senha enviadas por e-mail.");
+            try
+            {
+                var recoveryLink = $"https://seusite.com/reset-password?email={user.Email}";
+                var body = $"Clique no link para redefinir sua senha: <a href='{recoveryLink}'>Redefinir Senha</a>";
+                _emailService.SendEmail(user.Email, "Recuperação de Senha", body);
+                return Ok("Instruções para recuperação de senha enviadas por e-mail.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao enviar o e-mail de recuperação: {ex.Message}\n{ex.StackTrace}");
+            }
+
         }
 
         [HttpGet("protected-data")]
@@ -214,12 +227,34 @@ namespace MsAuthentication.Controllers
                 RefreshToken = newRefreshToken
             });
         }
+
+        // Novo endpoint de teste de envio de e-mail
+        [AllowAnonymous]
+        [HttpPost("email/test-send")]
+        public IActionResult TestSendEmail([FromBody] EmailTestDto emailTestDto)
+        {
+            try
+            {
+                _emailService.SendEmail(emailTestDto.ToEmail, "Teste de envio de email", "Este é um email de teste enviado pelo sistema.");
+                return Ok("Email de teste enviado com sucesso!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao enviar o e-mail de recuperação: {ex.Message}\n{ex.StackTrace}");
+            }
+
+        }
     }
 
-    // DTO para verificação do código 2FA
     public class TwoFactorCodeRequest
     {
-        public  required  string Email { get; set; }
-        public  required string Code { get; set; }
+        public required string Email { get; set; }
+        public required string Code { get; set; }
+    }
+
+    // DTO para teste de email
+    public class EmailTestDto
+    {
+        public required string ToEmail { get; set; }
     }
 }

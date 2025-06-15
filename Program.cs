@@ -5,48 +5,54 @@ using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MsAuthentication.Config;
+using Microsoft.Extensions.Options;
+using System.Net;
+using System.Net.Mail;
+
+// Carrega variáveis do .env na raiz do projeto
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do banco de dados
+// Carrega appsettings.json e variáveis de ambiente (.env já carregado pelo DotNetEnv)
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
+// Configuração do banco de dados via connection string do appsettings ou .env
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AuthDbConnection")));
 
-// Configuração do JWT
-var jwtConfig = builder.Configuration.GetSection("JwtConfig").Get<JwtConfig>();
-
-if (jwtConfig == null)
+// Configurações JWT via variáveis de ambiente
+var jwtConfig = new JwtConfig
 {
-    jwtConfig = new JwtConfig
-    {
-        Key = "qwertyuiopasdfghjklzxcvbnm123456",
-        Issuer = "default-issuer",
-        Audience = "default-audience",
-        ExpirationInMinutes = 60
-    };
-}
-
+    Key = Environment.GetEnvironmentVariable("JWT_KEY") ?? "fallback-key",
+    Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "fallback-issuer",
+    Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "fallback-audience",
+    ExpirationInMinutes = int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES"), out int expiration) ? expiration : 60
+};
 builder.Services.AddSingleton(jwtConfig);
 
 builder.Services.AddMemoryCache();
 
-// Configuração do CORS (apenas uma vez aqui)
+// Configuração do CORS
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy.AllowAnyOrigin()
-                                .AllowAnyMethod()
-                                .AllowAnyHeader();
-                      });
+    options.AddPolicy(name: MyAllowSpecificOrigins, policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
-// Serviços
+// Serviços de autenticação, email e 2FA
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddSingleton<TwoFactorService>();
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.AddTransient<EmailService>();
 
 // Configuração da autenticação JWT
 builder.Services.AddAuthentication("Bearer")
@@ -64,9 +70,9 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
+// Controllers e Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -77,12 +83,7 @@ builder.Services.AddSwaggerGen(c =>
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = @"
-Para autenticar, insira o token JWT desta forma:
-'Bearer {seu_token}'
-
-Exemplo: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-",
+        Description = @"Insira o token JWT assim: Bearer {seu_token}",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -110,7 +111,7 @@ Exemplo: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
 
 var app = builder.Build();
 
-// Usar CORS antes do Authentication e Authorization
+// Pipeline de middlewares
 app.UseCors(MyAllowSpecificOrigins);
 
 if (app.Environment.IsDevelopment())
