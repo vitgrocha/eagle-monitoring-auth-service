@@ -1,0 +1,43 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider IDE
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# NuGet
+*.nupkg
+packages/
+*.snupkg
+
+# ASP.NET Core
+wwwroot/lib/
+
+# Logs
+*.log
+
+# User-specific files
+*.rsuser
+*.dotCover
+
+# DotEnv files (if you use .env)
+.env
+
+# Secrets
+secrets.json
+
+# Publish folder
+publish/
+
+# Others
+*.DS_Store
