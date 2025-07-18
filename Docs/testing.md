@@ -1,32 +1,64 @@
-# 🧪 Documento de Testes – Microserviço de Autenticação
+🧪 Documento de Testes – Microserviço de Autenticação
+📋 Informações Gerais
+Projeto: MSAuthentication
 
----
+Responsável: Vitória Gabriella
 
-### 📋 Informações Gerais
-- **Projeto:** MSAuthentication  
-- **Responsável:** Vitória Gabriella  
-- **Data:** 2025-06-14 
+Data: 2025-06-14
 
----
+🚦 Testes Realizados
+🔐 Registro de Usuário
+Endpoint: POST /api/auth/register
+Request:
 
-### 🚦 Testes Realizados
+{ "email": "teste@exemplo.com", "password": "Senha123!" }
+Esperado: Usuário criado com sucesso
 
-| 📝 Teste                  | 🔗 Endpoint                 | 📥 Entrada (Request)                                  | ✅ Resultado Esperado               | 🎯 Resultado Obtido               | ✔️ Status        | 💡 Observações                       |
-|---------------------------|----------------------------|-----------------------------------------------------|-----------------------------------|---------------------------------|------------------|------------------------------------|
-| Registro de usuário       | `POST /api/auth/register`  | `{ "email": "teste@exemplo.com", "password": "Senha123!" }` | Usuário criado com sucesso        | Usuário criado com sucesso       | ✅ OK            | -                                  |
-| Login com senha correta    | `POST /api/auth/login`     | `{ "email": "teste@exemplo.com", "password": "Senha123!" }` | Retorna token + refresh token     | Retorna token + refresh token    | ✅ OK            | -                                  |
-| Login com senha incorreta  | `POST /api/auth/login`     | `{ "email": "teste@exemplo.com", "password": "errada" }`     | Retorna Unauthorized              | Retorna Unauthorized             | ✅ OK            | -                                  |
-| Recuperação de senha (email)| `POST /api/auth/password/forgot` | `{ "email": "teste@exemplo.com" }`                   | Envio de email de recuperação     | Email enviado (ou mock)          | ⚙️ Em desenvolvimento | Email ainda não implementado       |
-| Verificação 2FA            | `POST /api/auth/verify-code` | `{ "email": "teste@exemplo.com", "code": "123456" }` | Retorna token JWT e refresh token | Retorna token JWT e refresh token| ⚙️ Em desenvolvimento | Ajustar envio do código por email  |
+![Registro OK](./images/endpoint-register-user.png)
 
----
+Obtido: ✅ OK
 
-### 🛠️ Próximos Passos
-- Finalizar envio do código 2FA por e-mail  
-- Implementar validação de regras de segurança para senhas  
-- Automatizar testes (unitários e integração)  
 
----
+🔑 Login Correto
+Endpoint: POST /api/auth/login
+Request:
 
-> **Dica:** Atualize esse documento sempre que fizer novos testes para manter tudo fresquinho! 🌸
+{ "email": "teste@exemplo.com", "password": "Senha123!" }
+Esperado: Usuário autenticado e token JWT retornado
+
+![Login OK](./images/endpoint-login-senha-correta.png)
+
+Obtido: ✅ OK
+
+
+🔐 Login Incorreto
+Endpoint: POST /api/auth/login
+Request:
+
+{ "email": "teste@exemplo.com", "password": "senhaErrada" }
+Esperado: Retorno Unauthorized (erro de autenticação)
+
+![Login sem sucesso](./images/endpoint-login-senha-incorreta.png)
+
+Obtido: ✅ OK
+
+
+🔄 Recuperação de Senha
+Endpoint: POST /api/auth/password/forgot
+Request:
+
+{ "email": "teste@exemplo.com" }
+Esperado: Envio de email de recuperação de senha
+
+![E-mail enviado](./images/endpoint-password-forgot-email.png)
+
+Obtido: ✅ OK
+
+
+🛠️ Próximos Passos
+
+Implementar validação de regras de segurança para senhas
+Automatizar testes (unitários e integração)
+
+Dica: Atualize esse documento sempre que fizer novos testes para manter tudo fresquinho! 🌸
 

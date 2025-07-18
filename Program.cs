@@ -110,19 +110,21 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
-
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+{
+    app.Urls.Clear();
+    app.Urls.Add("http://*:80");
+}
 // Pipeline de middlewares
 app.UseCors(MyAllowSpecificOrigins);
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MsAuthentication API v1");
-        c.RoutePrefix = string.Empty;
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MsAuthentication API v1");
+    c.RoutePrefix = string.Empty;
+});
+
 
 app.UseHttpsRedirection();
 
