@@ -1,123 +1,81 @@
 using Microsoft.AspNetCore.Mvc;
-using MsAuthentication.Data;
-using MsAuthentication.Models;
 using MsAuthentication.DTOs;
 using MsAuthentication.Services;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 
 namespace MsAuthentication.Controllers
 {
-    [Authorize]
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthDbContext _context;
         private readonly AuthService _authService;
-        private readonly IMemoryCache _cache;
-        private readonly TwoFactorService _twoFactorService;
-        private readonly EmailService _emailService;
 
-        public AuthController(
-            AuthDbContext context,
-            AuthService authService,
-            IMemoryCache cache,
-            TwoFactorService twoFactorService,
-            EmailService emailService)
+        public AuthController(AuthService authService)
         {
-            _context = context;
             _authService = authService;
-            _cache = cache;
-            _twoFactorService = twoFactorService;
-            _emailService = emailService;
         }
 
-        [AllowAnonymous]
         [HttpPost("register")]
-        public IActionResult Register([FromBody] UserDto userDto)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            if (_context.Users.Any(u => u.Email == userDto.Email))
-                return BadRequest("Não é possível utilizar este usuário!");
+            request.Email = request.Email.Trim().ToLower();
+            var result = await _authService.RegisterUserAsync(request);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
 
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
-            var user = new User(userDto.Email, hashedPassword, "User");
-
-            _context.Users.Add(user);
-            _context.SaveChanges();
-
-            return Ok("Usuário registrado com sucesso!");
+            return Ok("Usuário registrado com sucesso.");
         }
 
-        // ... (seus outros endpoints)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+        {
+            request.Email = request.Email.Trim().ToLower();
+            var tokenResponse = await _authService.LoginUserAsync(request);
+            if (tokenResponse == null)
+                return Unauthorized("Email ou senha inválidos.");
+
+            return Ok(tokenResponse);
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
+        {
+            var email = request.Email.Trim().ToLower();
+            var result = await _authService.SendPasswordResetEmailAsync(email);
+            if (!result)
+                return NotFound("Usuário não encontrado.");
+
+            return Ok("Email de recuperação enviado com sucesso.");
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
+        {
+            request.Email = request.Email.Trim().ToLower();
+            var result = await _authService.ResetPasswordAsync(request);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok("Senha redefinida com sucesso.");
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request)
+        {
+            request.Email = request.Email.Trim().ToLower();
+            var result = await _authService.RefreshTokenAsync(request.Email, request.RefreshToken);
+            if (result == null)
+                return Unauthorized("Token inválido ou expirado.");
+
+            return Ok(result);
+        }
 
         [HttpPost("logout")]
-        public IActionResult Logout([FromBody] LogoutRequestDto request)
+        public async Task<IActionResult> Logout([FromBody] LogoutRequestDto request)
         {
-            if (request == null || string.IsNullOrEmpty(request.RefreshToken))
-                return BadRequest("Refresh token não fornecido!");
-
-            var handler = new JwtSecurityTokenHandler();
-            JwtSecurityToken? jwtToken = null;
-
-            try
-            {
-                jwtToken = handler.ReadJwtToken(request.RefreshToken);
-            }
-            catch
-            {
-                return BadRequest("Refresh token inválido!");
-            }
-
-            var tokenId = jwtToken?.Id;
-            if (string.IsNullOrEmpty(tokenId))
-                return BadRequest("Token inválido!");
-
-            _authService.InvalidateToken(tokenId);
-
-            return Ok("Logout bem-sucedido!");
+            request.Email = request.Email.Trim().ToLower();
+            await _authService.LogoutAsync(request.Email);
+            return Ok("Logout realizado com sucesso.");
         }
-
-        [AllowAnonymous]
-        [HttpPost("token/refresh")]
-        public IActionResult RefreshToken([FromBody] RefreshTokenRequestDto request)
-        {
-            if (request == null || string.IsNullOrEmpty(request.RefreshToken) || string.IsNullOrEmpty(request.Email))
-                return BadRequest("Email e refresh token são obrigatórios.");
-
-            if (!_authService.ValidateRefreshToken(request.RefreshToken, request.Email))
-                return Unauthorized("Refresh token inválido!");
-
-            var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
-            if (user == null)
-                return NotFound("Usuário não encontrado!");
-
-            var newJwtToken = _authService.GenerateToken(user);
-            var newRefreshToken = _authService.GenerateRefreshToken(user.Email);
-
-            _authService.RevokeRefreshToken(request.RefreshToken);
-
-            return Ok(new
-            {
-                Token = newJwtToken,
-                RefreshToken = newRefreshToken
-            });
-        }
-
-        // ... (demais endpoints permanecem iguais)
-    }
-
-    // DTOs inline que você tinha no final (pode mover para arquivos separados)
-    public class TwoFactorCodeRequest
-    {
-        public required string Email { get; set; }
-        public required string Code { get; set; }
-    }
-
-    public class EmailTestDto
-    {
-        public required string ToEmail { get; set; }
     }
 }

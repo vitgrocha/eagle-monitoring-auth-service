@@ -51,8 +51,29 @@ builder.Services.AddCors(options =>
 // Serviços de autenticação, email e 2FA
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddSingleton<TwoFactorService>();
-builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 builder.Services.AddTransient<EmailService>();
+
+// SMTP Settings a partir das variáveis de ambiente
+var smtpSettings = new SmtpSettings
+{
+    Host = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "",
+    Port = int.TryParse(Environment.GetEnvironmentVariable("SMTP_PORT"), out var port) ? port : 587,
+    EnableSsl = bool.TryParse(Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL"), out var ssl) && ssl,
+    UserName = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? "",
+    Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "",
+    From = Environment.GetEnvironmentVariable("SMTP_FROM") ?? ""
+};
+
+// ✅ Corrigido: atribuindo as propriedades manualmente
+builder.Services.Configure<SmtpSettings>(options =>
+{
+    options.Host = smtpSettings.Host;
+    options.Port = smtpSettings.Port;
+    options.EnableSsl = smtpSettings.EnableSsl;
+    options.UserName = smtpSettings.UserName;
+    options.Password = smtpSettings.Password;
+    options.From = smtpSettings.From;
+});
 
 // Configuração da autenticação JWT
 builder.Services.AddAuthentication("Bearer")
@@ -110,11 +131,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
 {
     app.Urls.Clear();
     app.Urls.Add("http://*:80");
 }
+
 // Pipeline de middlewares
 app.UseCors(MyAllowSpecificOrigins);
 
@@ -124,7 +147,6 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "MsAuthentication API v1");
     c.RoutePrefix = string.Empty;
 });
-
 
 app.UseHttpsRedirection();
 
