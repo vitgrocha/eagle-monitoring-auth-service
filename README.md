@@ -1,4 +1,8 @@
-# 🔐 MSAuthentication - Microserviço de Autenticação
+# 🔐 eagle-monitoring-auth-service
+[![CI](https://img.shields.io/github/actions/workflow/status/SEU_USUARIO/eagle-monitoring-auth-service/ci.yml?branch=main)]()
+[![Release](https://img.shields.io/github/v/release/SEU_USUARIO/eagle-monitoring-auth-service)]()
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
+
 
 Microserviço responsável pela autenticação e gerenciamento de acesso de usuários.  
 Utiliza **ASP.NET Core**, **JWT**, **BCrypt** e segue o padrão **RESTful**.  
@@ -8,22 +12,16 @@ Desenvolvido para integração com ambientes baseados em **microsserviços**.
 
 ## 📌 Visão Geral
 
-O `MSAuthentication` é responsável pelo processo de login, registro, alteração de senha, recuperação de conta e geração de tokens JWT com controle de perfis (roles).  
-Atua como ponto central de autenticação em um sistema distribuído, desacoplado dos demais serviços.
-
----
-
-## 🚀 Tecnologias Utilizadas
-
-- ✅ **ASP.NET Core 7.0+**
-- ✅ **Entity Framework Core**
-- ✅ **JWT Bearer Authentication**
-- ✅ **BCrypt.Net** (hash de senhas)
-- ✅ **AutoMapper**
-- ✅ **Swagger (Swashbuckle)**
-- ✅ **MySQL / SQL Server**
-- ✅ **CORS Configurado**
-- ✅ **Arquitetura RESTful**
+- [Visão Geral](#visão-geral)
+- [Tecnologias](#tecnologias)
+- [Arquitetura](#arquitetura)
+- [Variáveis de Ambiente](#variáveis-de-ambiente)
+- [Como Rodar](#como-rodar)
+- [Endpoints](#endpoints)
+- [Modelos de Resposta/Erro](#modelos-de-respostaerro)
+- [Testes](#testes)
+- [Contribuição](#contribuição)
+- [Licença](#licença)
 
 ---
 
