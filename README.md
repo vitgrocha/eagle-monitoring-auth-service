@@ -10,7 +10,7 @@ Desenvolvido para integração com ambientes baseados em **microsserviços**.
 
 ---
 
-## 📌 Visão Geral
+## 📌 Sumário
 
 - [Visão Geral](#visão-geral)
 - [Tecnologias](#tecnologias)
@@ -25,6 +25,24 @@ Desenvolvido para integração com ambientes baseados em **microsserviços**.
 
 ---
 
+## Visão Geral
+- **Responsabilidade única:** autenticar usuários e emitir **tokens JWT** contendo `roles/claims`.
+- **Autorização:** este serviço **não** gerencia políticas/permissões — outros serviços/gateway validam o **role** presente no JWT.
+- **Pronto para microsserviços:** comunicação via HTTP, documentação via **Swagger/OpenAPI** e healthcheck.
+
+**Swagger:** `http://localhost:PORT/swagger` (ex.: `http://localhost:5259/swagger`)
+
+---
+
+## Tecnologias
+- ASP.NET Core
+- Entity Framework Core
+- BCrypt (hash de senhas)
+- JWT (bearer tokens)
+- MySQL ou SQL Server (via connection string)
+- Swagger / OpenAPI
+
+---
 ## 📁 Estrutura do Projeto
 
 ```
